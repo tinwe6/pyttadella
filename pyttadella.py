@@ -31,40 +31,6 @@ current_room = ''
 
 ##########
 
-
-class Post:
-    def __init__(self, header: dict, body: list):
-        assert header is not None and body is not None
-        self.header = header
-        self.body = body
-
-    @property
-    def formatted(self) -> str:
-        result = '{}, {} at {} - by {}\n'.format(
-            self.header['roomname'],
-            date_from_timestamp(self.header['timestamp']),
-            time_from_timestamp(self.header['timestamp']),
-            self.header['author']
-            )
-        if self.header['reply_locnum']:
-            if self.header['subject'] != '':
-                result += 'Reply: {}, msg #{} by {}\n'.format(
-                    self.header['subject'],
-                    self.header['reply_locnum'],
-                    self.header['reply_to']
-                    )
-            else:
-                result += 'Reply to msg #{} by {}\n'.format(
-                    self.header['reply_locnum'],
-                    self.header['reply_to']
-                    )
-        elif self.header['subject'] != '':
-            result += 'Subject: {}\n'.format(self.header['subject'])
-        result += '\n'
-        for line in self.body:
-            result += filter_tags(line) + '\n'
-        return result
-
 def get_cmd(tn, input_generator):
     ch = input_generator.send(timeout = 0)
     if ch is not None:
