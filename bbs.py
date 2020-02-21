@@ -1,5 +1,6 @@
 import commands as cmd
 from utils import date_from_timestamp, time_from_timestamp
+from utils import filter_tags
 
 class Post:
     def __init__(self, header: dict, body: list):

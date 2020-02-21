@@ -11,8 +11,6 @@ from curtsies import Input #, send
 import commands as cmd
 import bbs
 from connection import server_connect, login
-from utils import Version, filter_tags
-from utils import time_from_timestamp, date_from_timestamp
 from tests import make_tests
 
 from bot import cittabot
