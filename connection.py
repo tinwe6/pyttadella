@@ -1,3 +1,5 @@
+from enum import Enum
+
 import commands as cmd
 from utils import Version, filter_tags
 from bbs import goto
@@ -12,12 +14,12 @@ client_version = Version(0, 1, 0)
 
 GUEST_USERNAME = 'Guest'
 
-STATE_START = 1
-STATE_LOGIN = 2
-STATE_MARCH = 3
-STATE_READ  = 4
+class ClientState(Enum):
+    start = 1
+    login = 2
+    march = 3
+    read  = 4
 
-client_state = STATE_START
 
 def serv_info(tn):
     server_data = cmd.info(tn)
@@ -51,18 +53,28 @@ def bbs_chek(tn):
     print('{} new mail.'.format(chek_data['new_mail']))
 
 
-def bbs_login(tn, username: str = 'Guest', password: str = None):
+def bbs_login(tn, username: str, password: str):
     success = False
+    user_is_guest = False
+    if username is None:
+        username = input(
+            "Insert your bbs nickname or 'Guest' if to have a look around.\n"
+            "('Off' to close the connection)\n\n"
+            "Name    : "
+            )
+    if username.lower() in ['off', 'esci', 'exit', 'quit']:
+        return False, None, None
+
     code, params = cmd.user(tn, username)
     if code == '223': # utente validato
-        already_connected = params[0]
+        already_connected = (params[0] == '1')
         if already_connected:
             print('Your other connection will be kicked out.')
+        password = input("password: ")
         code, line = cmd.usr1(tn, username, password)
         print(line)
         if code == cmd.RESP_OK:
             print('User logged in.')
-            user_is_guest = False
             success = True
         elif code == '100': # already logged in
             pass
@@ -79,7 +91,7 @@ def bbs_login(tn, username: str = 'Guest', password: str = None):
     if success and not user_is_guest:
         bbs_chek(tn)
 
-    return success, code
+    return success, user_is_guest, code
 
 
 import telnetlib
@@ -122,13 +134,15 @@ def server_connect(host = HOST, port = PORT, show_banner: bool = True,
 
 
 def login(tn, username, password):
-    bbs_login(tn, username = GUEST_USERNAME, password = '')
-    # TODO check polls
+    success, user_is_guest, code = bbs_login(tn, username, password = '')
+    if success:
+        # TODO check polls
 
-    user_is_logged_in = True
-    client_state = STATE_LOGIN
-    # go to lobby
-    goto(tn, 'skip_home')
-    client_state = STATE_MARCH
+        user_is_logged_in = True
+        client_state = ClientState.login
+        # go to lobby
+        goto(tn, 'skip_home')
+        client_state = ClientState.march
 
+    return success
 

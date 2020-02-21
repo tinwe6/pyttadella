@@ -10,7 +10,7 @@ from curtsies import Input #, send
 
 import commands as cmd
 import bbs
-from connection import server_connect, login
+from connection import server_connect, login, ClientState
 from tests import make_tests
 
 from bot import cittabot
@@ -21,11 +21,17 @@ password = ''
 
 ######
 
-user_is_guest = False
-user_is_logged_in = False
+class User:
+    def __init__(self, username = None, password = None):
+        self.username = username
+        self.user_is_guest = False
+        self.user_is_logged_in = False
 
-current_room = ''
-
+class Client:
+    def __init__(self, username: str = 'Guest'):
+        self.current_room = ''
+        self.state = ClientState.start
+        self.user = User()
 
 ##########
 
@@ -86,11 +92,11 @@ if __name__ == '__main__':
 
     # tn = server_connect(host, port)
     tn = server_connect()
-    login(tn, username, password)
-
-    with Input(keynames='curses') as input_generator:
-        client_cycle(tn, input_generator)
+    client = Client()
+    
+    if login(tn, None, None):
+        with Input(keynames='curses') as input_generator:
+            client_cycle(tn, input_generator)
 
     bbs.quit(tn)
     tn.close()
-
